@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: aura-lens-api
+    runtime: docker # 强制告诉 Render 使用 Docker，不给它猜的机会
+    plan: free
+    region: singapore # 建议选新加坡，对内地访问更友好
+    envVars:
+      - key: PORT
+        value: 80
