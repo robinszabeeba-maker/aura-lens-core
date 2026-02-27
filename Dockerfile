@@ -1,7 +1,7 @@
-# 使用镜像加速前缀（这是目前 2026 年较稳的方案）
-FROM dockerpull.com/python:3.10-slim
+# 删掉那个 dockerpull.com 的前缀，回归官方镜像
+FROM python:3.10-slim
 
-# 安装依赖
+# 后面的安装依赖逻辑保持不变
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-glx \
     libglib2.0-0 \
