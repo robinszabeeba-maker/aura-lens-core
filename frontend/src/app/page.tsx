@@ -5,7 +5,12 @@ import type React from "react";
 
 import { ShareCard } from "./components/ShareCard";
 
-const ANALYZE_API_URL = "http://127.0.0.1:8000/analyze";
+// 后端基础地址通过环境变量注入（Vercel 上配置 NEXT_PUBLIC_API_URL）
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL && process.env.NEXT_PUBLIC_API_URL.length > 0
+    ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")
+    : "";
+const ANALYZE_API_URL = `${API_BASE_URL}/analyze`;
 const MAX_UPLOAD_WIDTH = 1000;
 
 async function compressImageFile(
@@ -228,7 +233,7 @@ export default function Home() {
       );
     } catch (err) {
       console.error("[AuraLens] 调用 /analyze 接口异常", err);
-      setError("分析失败，请确认后端服务已在 8000 端口启动，再重试一次。");
+      setError("分析失败，请检查网络连接或后端服务状态，然后再试一次。");
     } finally {
       setLoading(false);
     }
