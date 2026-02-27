@@ -1,0 +1,6 @@
+__pycache__/
+*.jpg
+*.png
+frontend/node_modules/
+frontend/.next/
+.env

@@ -1,0 +1,94 @@
+import cv2
+import mediapipe as mp
+import numpy as np
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from PIL import Image, ImageDraw, ImageFont
+import io
+import base64
+
+app = FastAPI()
+
+# 允许跨域（前端调用后端必选）
+app.add_middleware(
+    CORSMiddleware,
+    # 当前阶段直接放开所有来源，联调更方便
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# 初始化 Mediapipe
+mp_face_mesh = mp.solutions.face_mesh
+face_mesh = mp_face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1)
+
+# 中文绘制助手（解决问号问题）
+def add_chinese_text(img, text, position, size=30, color=(255, 255, 255)):
+    img_pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    draw = ImageDraw.Draw(img_pil)
+    try:
+        # Mac系统字体路径
+        font = ImageFont.truetype("/System/Library/Fonts/PingFang.ttc", size)
+    except:
+        font = ImageFont.load_default()
+    draw.text(position, text, font=font, fill=color)
+    return cv2.cvtColor(np.asarray(img_pil), cv2.COLOR_RGB2BGR)
+
+@app.post("/analyze")
+async def analyze_face(file: UploadFile = File(...)):
+    # 1. 读取上传的文件
+    contents = await file.read()
+    nparr = np.frombuffer(contents, np.uint8)
+    image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    h, w, _ = image.shape
+
+    # 2. AI 核心分析逻辑
+    results = face_mesh.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+
+    # 如果未检测到面部，返回友好的错误 JSON
+    if not results.multi_face_landmarks:
+        return {
+            "error": "NO_FACE_DETECTED",
+            "message": "未检测到人脸，请换个角度再试",
+        }
+
+    landmarks = results.multi_face_landmarks[0].landmark
+    
+    # --- 简化版算法示例 (PM可根据PRD调整权重) ---
+    # 这里我们演示计算一个简单的对称性得分
+    left_eye = landmarks[33]
+    right_eye = landmarks[263]
+    score = int(90 - abs(left_eye.y - right_eye.y) * 1000) # 越对称分数越高
+    
+    # 3. 情绪价值文案引擎
+    if score > 85:
+        label = "未来猫系脸"
+        vibe_text = "你的五官比例极具电影感，是非常上镜的高级脸。"
+    else:
+        label = "治愈犬系脸"
+        vibe_text = "你的面部线条柔和，给人一种非常亲切的温暖感。"
+
+    # 4. 可视化绘制
+    # 绘制关键点
+    for lm in landmarks:
+        cv2.circle(image, (int(lm.x * w), int(lm.y * h)), 1, (0, 0, 255), -1)
+    
+    # 绘制中文信息
+    image = add_chinese_text(image, f"评分: {score}", (20, 30), 40, (0, 255, 255))
+    image = add_chinese_text(image, f"风格: {label}", (20, 80), 30, (255, 200, 0))
+    image = add_chinese_text(image, vibe_text, (20, h - 60), 25, (255, 255, 255))
+
+    # 5. 将处理后的图片转为 Base64 给前端显示
+    _, buffer = cv2.imencode('.jpg', image)
+    img_base64 = base64.b64encode(buffer).decode('utf-8')
+
+    return {
+        "score": score,
+        "label": label,
+        "vibe_text": vibe_text,
+        "image_data": f"data:image/jpeg;base64,{img_base64}"
+    }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
