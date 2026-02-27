@@ -5,6 +5,7 @@ AuraLens 颜值分析 API
 """
 import base64
 import io
+import os
 
 import cv2
 import mediapipe as mp
@@ -12,6 +13,11 @@ import numpy as np
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image, ImageDraw, ImageFont
+
+# ----- 自检：Render 日志中可一眼看出 mediapipe 加载路径（/app=错误，/usr/local/lib=正确） -----
+print("RENDER_DEBUG mediapipe.__file__ =", getattr(mp, "__file__", "N/A"))
+print("RENDER_DEBUG os.listdir('.') =", os.listdir("."))
+# ---------------------------------------------------------------------------------------------
 
 app = FastAPI()
 

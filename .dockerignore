@@ -1,25 +1,22 @@
-# 避免把本地/虚拟环境打进镜像，防止 mediapipe 等命名空间冲突
-venv
+# 物理隔绝本地干扰项，确保永远不会被打包进 Docker 镜像
+mediapipe/
+__pycache__/
+.git/
+.github/
+venv/
 .venv
 env
 .env
-__pycache__
 *.py[cod]
 *.pyo
 .pytest_cache
 .mypy_cache
 .coverage
 htmlcov
-
-# 前端与无关资源（API 镜像不需要）
 frontend
 node_modules
 *.md
-.git
-.github
 .gitignore
-
-# 大文件与测试资源（可选，减小镜像体积）
 *.jpg
 *.jpeg
 *.png
