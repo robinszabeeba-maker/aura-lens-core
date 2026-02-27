@@ -19,4 +19,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 6. 启动
-CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-80}
+# 将原来的 CMD uvicorn... 改成这种方括号形式
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
