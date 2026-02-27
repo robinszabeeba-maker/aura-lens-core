@@ -79,7 +79,7 @@ export const ShareCard: React.FC<ShareCardProps> = ({
           (element as HTMLElement).id === "auralens-save-button",
         height: forcedHeight,
         onclone(clonedDoc, clonedEl) {
-          const root = typeof clonedEl === "function" ? clonedEl() : clonedEl;
+          const root = clonedEl;
           if (!root || !(root instanceof HTMLElement)) return;
 
           const doc = clonedDoc as Document;
