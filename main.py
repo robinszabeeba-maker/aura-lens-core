@@ -1,5 +1,17 @@
 import cv2
 import mediapipe as mp
+import os
+
+# 打印出 mediapipe 到底是从哪儿加载的
+print(f"DEBUG: Mediapipe location: {mp.__file__}")
+print(f"DEBUG: Files in current directory: {os.listdir('.')}")
+
+try:
+    face_mesh = mp.solutions.face_mesh
+    print("DEBUG: Successfully accessed mp.solutions.face_mesh")
+except AttributeError as e:
+    print(f"DEBUG: Failed to access solutions. Available attributes: {dir(mp)}")
+    raise e
 import numpy as np
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
