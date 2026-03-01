@@ -20,6 +20,10 @@ from PIL import Image, ImageDraw, ImageFont
 print("RENDER_DEBUG mediapipe.__file__ =", getattr(mp, "__file__", "N/A"))
 print("RENDER_DEBUG os.listdir('.') =", os.listdir("."))
 
+# ----- 启动日志：Render 健康检查依赖服务绑定到 $PORT -----
+_bind_port = os.environ.get("PORT", "80")
+print("STARTUP BIND_PORT (from env):", _bind_port)
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -53,7 +57,7 @@ except Exception as e:
 
 @app.get("/")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "message": "Aura Lens API is running"}
 
 
 def add_chinese_text(img, text, position, size=30, color=(255, 255, 255)):
