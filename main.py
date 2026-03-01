@@ -6,21 +6,21 @@ AuraLens 颜值分析 API
 import base64
 import io
 import os
+import sys
 
 import cv2
 import mediapipe as mp
 import numpy as np
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from PIL import Image, ImageDraw, ImageFont
 
-# ----- 自检：Render 日志中可一眼看出 mediapipe 加载路径（/app=错误，/usr/local/lib=正确） -----
+# ----- 自检：Render 日志中可一眼看出 mediapipe 加载路径 -----
 print("RENDER_DEBUG mediapipe.__file__ =", getattr(mp, "__file__", "N/A"))
 print("RENDER_DEBUG os.listdir('.') =", os.listdir("."))
-# ---------------------------------------------------------------------------------------------
 
 app = FastAPI()
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,9 +28,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 使用官方 mediapipe：仅在此处初始化，确保来自 pip 包
-mp_face_mesh = mp.solutions.face_mesh
-face_mesh = mp_face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1)
+
+def _mem_log(label: str) -> None:
+    try:
+        import resource
+        usage = resource.getrusage(resource.RUSAGE_SELF)
+        print(f"MEMORY_LOG {label} (RSS max approx KB): {usage.ru_maxrss}")
+    except Exception:
+        print(f"MEMORY_LOG {label} (resource not available)")
+
+
+face_mesh = None
+try:
+    _mem_log("before model load")
+    mp_face_mesh = mp.solutions.face_mesh
+    face_mesh = mp_face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1)
+    _mem_log("after model load")
+except Exception as e:
+    print("INIT_ERROR", str(e), file=sys.stderr)
+    import traceback
+    traceback.print_exc(file=sys.stderr)
+    raise
+
+
+@app.get("/")
+def health():
+    return {"status": "ok"}
 
 
 def add_chinese_text(img, text, position, size=30, color=(255, 255, 255)):
@@ -55,6 +78,11 @@ def add_chinese_text(img, text, position, size=30, color=(255, 255, 255)):
 
 @app.post("/analyze")
 async def analyze_face(file: UploadFile = File(...)):
+    if face_mesh is None:
+        return JSONResponse(
+            content={"error": "SERVICE_UNAVAILABLE", "message": "模型未就绪，请稍后重试。"},
+            status_code=503,
+        )
     contents = await file.read()
     nparr = np.frombuffer(contents, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
