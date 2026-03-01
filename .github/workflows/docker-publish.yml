@@ -27,3 +27,6 @@ jobs:
           platforms: linux/amd64 # 确保构建的是服务器通用的架构
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/aura-lens-api:latest
+
+      - name: Trigger Render Deploy
+        run: curl -f -S -X GET "${{ secrets.RENDER_DEPLOY_HOOK }}"

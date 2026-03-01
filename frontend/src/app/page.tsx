@@ -253,10 +253,10 @@ export default function Home() {
               AuraLens · Face Insight
             </div>
             <h1 className="mt-4 bg-gradient-to-r from-slate-50 via-sky-300 to-emerald-300 bg-clip-text text-3xl font-semibold tracking-tight text-transparent md:text-4xl">
-              颜值打分器 · AuraLens
+              AI 颜值实验室 · AuraLens
             </h1>
             <p className="mt-3 max-w-xl text-sm text-slate-400 md:text-base">
-              拖拽或上传一张人像照片，AuraLens 将为你生成一张带标注的分析图，
+              拖拽或上传一张人像照片，AuraLens 将为你生成一份带标注的 AI 美学报告，
               再配上一段专属夸夸文案，让自信感瞬间拉满。
             </p>
           </div>
@@ -392,7 +392,7 @@ export default function Home() {
                   />
                 ) : (
                   <p className="max-w-xs text-center text-xs text-slate-500">
-                    还没有结果。上传一张照片并点击「开始分析颜值」，我们会为你生成一张高亮优点的分析图。
+                    还没有结果。上传一张照片并点击「开始分析颜值」，我们会为你生成一份高亮优点的 AI 美学报告。
                   </p>
                 )}
               </div>
